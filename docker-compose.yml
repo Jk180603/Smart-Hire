@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: smarthire
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  backend:
+    build: ./backend
+    ports:
+      - "8001:8001"
+    environment:
+      DATABASE_URL: postgresql://postgres:password@db:5432/smarthire
+      GROQ_API_KEY: ${GROQ_API_KEY}
+    depends_on:
+      - db
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8001
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
